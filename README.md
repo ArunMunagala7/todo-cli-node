@@ -14,7 +14,7 @@ A full-stack **Task Manager** project showing evolution from a simple CLI → RE
 ## ⚙️ Setup Guide
 
 ### 🔹 Backend (CLI + API)
-1. Clone the repository and install dependencies:
+1. Clone and install:
    ```bash
    git clone https://github.com/<your-username>/todo-cli-node.git
    cd todo-cli-node
@@ -23,7 +23,7 @@ A full-stack **Task Manager** project showing evolution from a simple CLI → RE
 
 2. Run the **CLI**:
    ```bash
-   npm start -- add "Buy groceries"
+   npm start -- add "Buy groceries" -p high -d 2025-09-20
    npm start -- list
    ```
 
@@ -32,33 +32,29 @@ A full-stack **Task Manager** project showing evolution from a simple CLI → RE
    npm run server
    ```
    - Runs at **http://localhost:4000**
-   - Login credentials:  
-     - username: `admin`  
+   - Login credentials:
+     - username: `admin`
      - password: `password123`
 
 ---
 
 ### 🔹 Frontend (Next.js UI)
-1. Go into the frontend folder:
+1. Go into the frontend app:
    ```bash
    cd frontend
-   ```
-
-2. Install dependencies:
-   ```bash
    npm install
-   ```
-
-3. Run the development server:
-   ```bash
    npm run dev
    ```
+2. Open **http://localhost:3000** in your browser.  
+3. Login with:
+   - username: `admin`
+   - password: `password123`
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.  
-   - Login with:  
-     - username: `admin`  
-     - password: `password123`  
-   - From here you can add and view tasks via the UI.
+**From the UI you can:**
+- ➕ **Add**: type a title and click **Add**
+- ✅ **Mark Done**: click **Done** next to a task
+- ✏️ **Edit Title**: type a new title in the input next to a task, then click **Edit**
+- 🗑️ **Delete**: click **Delete** to remove a task
 
 ---
 
@@ -96,23 +92,66 @@ npm start -- delete <id>
 
 ## 🌐 REST API Endpoints
 
+Start the API:
+```bash
+npm run server
+```
+
 Base URL: `http://localhost:4000`
 
-- `POST /login` → authenticate with `{ username, password }`  
-- `GET /tasks` → list all tasks  
-- `POST /tasks` → add a task  
-- `PUT /tasks/:id/done` → mark as done  
-- `PUT /tasks/:id` → edit task  
-- `DELETE /tasks/:id` → delete task  
+- `POST /login` → authenticate with `{ username, password }`
+- `GET /tasks` → list all tasks (requires `username` + `password` headers)
+- `POST /tasks` → add a task
+- `PUT /tasks/:id/done` → mark as done
+- `PUT /tasks/:id` → edit task (e.g., `{ "title": "New title" }`)
+- `DELETE /tasks/:id` → delete task
 
-Example:
+**Examples:**
 ```bash
+# List
+curl -X GET http://localhost:4000/tasks \
+  -H "username: admin" -H "password: password123"
+
+# Add
 curl -X POST http://localhost:4000/tasks \
   -H "Content-Type: application/json" \
-  -H "username: admin" \
-  -H "password: password123" \
+  -H "username: admin" -H "password: password123" \
   -d '{"title":"Buy groceries","priority":"high"}'
+
+# Done
+curl -X PUT http://localhost:4000/tasks/<id>/done \
+  -H "username: admin" -H "password: password123"
+
+# Edit (title)
+curl -X PUT http://localhost:4000/tasks/<id> \
+  -H "Content-Type: application/json" \
+  -H "username: admin" -H "password: password123" \
+  -d '{"title":"Updated title"}'
+
+# Delete
+curl -X DELETE http://localhost:4000/tasks/<id> \
+  -H "username: admin" -H "password: password123"
 ```
+
+---
+
+## 📦 Scripts
+```bash
+npm start        # run CLI
+npm run server   # run Express API
+npm test         # run unit tests
+cd frontend && npm run dev   # run Next.js frontend
+```
+
+---
+
+## 🔧 Tech Stack
+- **Node.js** (CLI + API)
+- **yargs** for CLI parsing
+- **express + cors + body-parser** for REST API
+- **Next.js (App Router, Turbopack) + TailwindCSS** for frontend
+- **node:test** for unit tests
+- JSON storage (extensible to SQLite/Postgres)
 
 ---
 
@@ -140,16 +179,6 @@ curl -X POST http://localhost:4000/tasks \
 - **Authentication:** basic (username/password in headers)  
 - **Persistence:** JSON file (future: SQLite/Postgres)  
 - **Expansion Path:** JWT auth, multi-user, cloud deployment  
-
----
-
-## 📦 Scripts
-```bash
-npm start        # run CLI
-npm run server   # run Express API
-npm test         # run unit tests
-cd frontend && npm run dev   # run Next.js frontend
-```
 
 ---
 
