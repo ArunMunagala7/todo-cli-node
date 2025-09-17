@@ -11,29 +11,58 @@ A full-stack **Task Manager** project showing evolution from a simple CLI → RE
 
 ---
 
-## 🚀 Quickstart
+## ⚙️ Setup Guide
 
-### 1. Clone and install
-```bash
-git clone https://github.com/<your-username>/todo-cli-node.git
-cd todo-cli-node
-npm install
-```
+### 🔹 Backend (CLI + API)
+1. Clone the repository and install dependencies:
+   ```bash
+   git clone https://github.com/<your-username>/todo-cli-node.git
+   cd todo-cli-node
+   npm install
+   ```
+
+2. Run the **CLI**:
+   ```bash
+   npm start -- add "Buy groceries"
+   npm start -- list
+   ```
+
+3. Start the **API server**:
+   ```bash
+   npm run server
+   ```
+   - Runs at **http://localhost:4000**
+   - Login credentials:  
+     - username: `admin`  
+     - password: `password123`
 
 ---
 
-## 🖥️ CLI Usage
+### 🔹 Frontend (Next.js UI)
+1. Go into the frontend folder:
+   ```bash
+   cd frontend
+   ```
 
-Run CLI directly:
-```bash
-npm start -- <command>
-```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Or install globally:
-```bash
-npm link
-todo <command>
-```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.  
+   - Login with:  
+     - username: `admin`  
+     - password: `password123`  
+   - From here you can add and view tasks via the UI.
+
+---
+
+## 🖥️ CLI Commands
 
 ### ➕ Add a task
 ```bash
@@ -65,94 +94,25 @@ npm start -- delete <id>
 
 ---
 
-## 🌐 REST API Usage
-
-Start the API server:
-```bash
-npm run server
-```
+## 🌐 REST API Endpoints
 
 Base URL: `http://localhost:4000`
 
-### ➕ Add a task
+- `POST /login` → authenticate with `{ username, password }`  
+- `GET /tasks` → list all tasks  
+- `POST /tasks` → add a task  
+- `PUT /tasks/:id/done` → mark as done  
+- `PUT /tasks/:id` → edit task  
+- `DELETE /tasks/:id` → delete task  
+
+Example:
 ```bash
 curl -X POST http://localhost:4000/tasks \
   -H "Content-Type: application/json" \
   -H "username: admin" \
   -H "password: password123" \
-  -d '{"title":"Buy groceries","priority":"high","due":"2025-09-20"}'
+  -d '{"title":"Buy groceries","priority":"high"}'
 ```
-
-### 📋 List tasks
-```bash
-curl -X GET http://localhost:4000/tasks \
-  -H "username: admin" \
-  -H "password: password123"
-```
-
-### ✅ Mark as done
-```bash
-curl -X PUT http://localhost:4000/tasks/<id>/done \
-  -H "username: admin" \
-  -H "password: password123"
-```
-
-### ✏️ Edit a task
-```bash
-curl -X PUT http://localhost:4000/tasks/<id> \
-  -H "Content-Type: application/json" \
-  -H "username: admin" \
-  -H "password: password123" \
-  -d '{"title":"Updated title","priority":"low","due":"2025-10-01"}'
-```
-
-### 🗑️ Delete a task
-```bash
-curl -X DELETE http://localhost:4000/tasks/<id> \
-  -H "username: admin" \
-  -H "password: password123"
-```
-
----
-
-## 🌍 Frontend Usage (Next.js)
-
-Start the frontend:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)  
-
-- **Login credentials**:  
-  - username: `admin`  
-  - password: `password123`  
-
-From the UI you can:  
-- ➕ Add a task (use the input box + “Add” button)  
-- 📋 View tasks (listed below the input)  
-- (Extensions possible: edit, mark done, delete in UI)
-
----
-
-## 📦 Scripts
-```bash
-npm start        # run CLI
-npm run server   # run Express API
-npm test         # run unit tests
-```
-
----
-
-## 🔧 Tech Stack
-- **Node.js** (CLI + API)
-- **yargs** for CLI parsing
-- **express + cors + body-parser** for REST API
-- **Next.js (App Router, Turbopack) + TailwindCSS** for frontend
-- **node:test** for unit tests
-- JSON storage (extensible to SQLite/Postgres)
 
 ---
 
@@ -180,6 +140,16 @@ npm test         # run unit tests
 - **Authentication:** basic (username/password in headers)  
 - **Persistence:** JSON file (future: SQLite/Postgres)  
 - **Expansion Path:** JWT auth, multi-user, cloud deployment  
+
+---
+
+## 📦 Scripts
+```bash
+npm start        # run CLI
+npm run server   # run Express API
+npm test         # run unit tests
+cd frontend && npm run dev   # run Next.js frontend
+```
 
 ---
 
