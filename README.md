@@ -22,72 +22,126 @@ npm install
 
 ---
 
-### 2. CLI Usage
+## 🖥️ CLI Usage
+
+Run CLI directly:
 ```bash
-# Add tasks
-npm start -- add "Buy milk" -p high -d 2025-09-20
-npm start -- list
-npm start -- done <id>
-npm start -- delete <id>
-npm start -- edit <id> "New title" -p low -d 2025-10-01
+npm start -- <command>
 ```
 
-Install globally (optional):
+Or install globally:
 ```bash
 npm link
-todo list
+todo <command>
+```
+
+### ➕ Add a task
+```bash
+npm start -- add "Buy groceries" -p high -d 2025-09-20
+```
+
+### 📋 List tasks
+```bash
+npm start -- list
+npm start -- list --all
+npm start -- list --done
+npm start -- list --search "groceries"
+```
+
+### ✅ Mark as done
+```bash
+npm start -- done <id>
+```
+
+### ✏️ Edit a task
+```bash
+npm start -- edit <id> "Updated title" -p low -d 2025-10-01
+```
+
+### 🗑️ Delete a task
+```bash
+npm start -- delete <id>
 ```
 
 ---
 
-### 3. REST API
-Start API server:
+## 🌐 REST API Usage
+
+Start the API server:
 ```bash
 npm run server
 ```
 
 Base URL: `http://localhost:4000`
 
-#### Endpoints:
-- `POST /login` → `{ username, password }` → returns token  
-- `GET /tasks` → list tasks (requires auth headers)  
-- `POST /tasks` → add task  
-- `PUT /tasks/:id/done` → mark done  
-- `PUT /tasks/:id` → edit task  
-- `DELETE /tasks/:id` → delete task  
+### ➕ Add a task
+```bash
+curl -X POST http://localhost:4000/tasks \
+  -H "Content-Type: application/json" \
+  -H "username: admin" \
+  -H "password: password123" \
+  -d '{"title":"Buy groceries","priority":"high","due":"2025-09-20"}'
+```
 
-#### Example with curl:
+### 📋 List tasks
 ```bash
 curl -X GET http://localhost:4000/tasks \
   -H "username: admin" \
   -H "password: password123"
 ```
 
+### ✅ Mark as done
+```bash
+curl -X PUT http://localhost:4000/tasks/<id>/done \
+  -H "username: admin" \
+  -H "password: password123"
+```
+
+### ✏️ Edit a task
+```bash
+curl -X PUT http://localhost:4000/tasks/<id> \
+  -H "Content-Type: application/json" \
+  -H "username: admin" \
+  -H "password: password123" \
+  -d '{"title":"Updated title","priority":"low","due":"2025-10-01"}'
+```
+
+### 🗑️ Delete a task
+```bash
+curl -X DELETE http://localhost:4000/tasks/<id> \
+  -H "username: admin" \
+  -H "password: password123"
+```
+
 ---
 
-### 4. Frontend
-Scaffolded with **Next.js** + **TailwindCSS**.  
+## 🌍 Frontend Usage (Next.js)
 
-Run the dev server:
+Start the frontend:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) → login with:  
-- **username:** `admin`  
-- **password:** `password123`  
+Open [http://localhost:3000](http://localhost:3000)  
 
-You can add and list tasks through the UI.
+- **Login credentials**:  
+  - username: `admin`  
+  - password: `password123`  
+
+From the UI you can:  
+- ➕ Add a task (use the input box + “Add” button)  
+- 📋 View tasks (listed below the input)  
+- (Extensions possible: edit, mark done, delete in UI)
 
 ---
 
 ## 📦 Scripts
 ```bash
-npm start   # run CLI
+npm start        # run CLI
 npm run server   # run Express API
-npm test    # run unit tests
+npm test         # run unit tests
 ```
 
 ---
@@ -102,9 +156,36 @@ npm test    # run unit tests
 
 ---
 
+## 🏗️ Architecture Overview
+
+```text
+           ┌─────────────┐
+           │   Frontend  │  (Next.js + Tailwind)
+           │   http://localhost:3000
+           └───────┬─────┘
+                   │ REST API calls (fetch)
+                   ▼
+           ┌─────────────┐
+           │   Backend   │  (Express API)
+           │   http://localhost:4000
+           └───────┬─────┘
+                   │ uses
+                   ▼
+           ┌─────────────┐
+           │  Storage    │  (JSON file)
+           │  data/tasks.json
+           └─────────────┘
+```
+
+- **Authentication:** basic (username/password in headers)  
+- **Persistence:** JSON file (future: SQLite/Postgres)  
+- **Expansion Path:** JWT auth, multi-user, cloud deployment  
+
+---
+
 ## 🗺️ Roadmap
-- [ ] Upgrade persistence to SQLite/Postgres
-- [ ] JWT-based auth
-- [ ] Deploy frontend (Vercel) + backend (Railway/Render)
-- [ ] Add charts & filters to tasks
-- [ ] Multi-user support
+- [ ] Upgrade persistence to SQLite/Postgres  
+- [ ] JWT-based auth  
+- [ ] Deploy frontend (Vercel) + backend (Railway/Render)  
+- [ ] Add charts & filters to tasks  
+- [ ] Multi-user support  
