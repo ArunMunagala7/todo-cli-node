@@ -1,5 +1,19 @@
 {
+  "name": "todo-cli-node",
+  "version": "0.1.0",
+  "description": "Simple Task Manager CLI in Node.js (CRUD + JSON persistence).",
+  "main": "index.js",
+  "bin": {
+    "todo": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test"
+  },
+  "keywords": ["cli", "todo", "node", "sde", "portfolio"],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
-    "yargs": "^18.0.0"
+    "yargs": "^17.7.2"
   }
 }
