@@ -8,12 +8,15 @@
   },
   "scripts": {
     "start": "node index.js",
+    "server": "node server.js",
     "test": "node --test"
   },
   "keywords": ["cli", "todo", "node", "sde", "portfolio"],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
     "yargs": "^17.7.2"
   }
 }
