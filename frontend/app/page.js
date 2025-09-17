@@ -7,8 +7,8 @@ export default function Home() {
   const [token, setToken] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState("med"); // NEW
-  const [editValues, setEditValues] = useState({});
+  const [priority, setPriority] = useState("med"); // for new task
+  const [editValues, setEditValues] = useState({}); // { id: { title, priority } }
 
   async function login() {
     const res = await fetch("http://localhost:4000/login", {
@@ -45,7 +45,7 @@ export default function Home() {
       body: JSON.stringify({ title, priority })
     });
     setTitle("");
-    setPriority("med"); // reset after adding
+    setPriority("med");
     await loadTasks();
   }
 
@@ -66,8 +66,9 @@ export default function Home() {
   }
 
   async function editTask(id) {
-    const newTitle = (editValues[id] || "").trim();
-    if (!newTitle) return;
+    const updates = editValues[id] || {};
+    if (!updates.title && !updates.priority) return;
+
     await fetch(`http://localhost:4000/tasks/${id}`, {
       method: "PUT",
       headers: {
@@ -75,9 +76,13 @@ export default function Home() {
         username,
         password
       },
-      body: JSON.stringify({ title: newTitle })
+      body: JSON.stringify({
+        ...(updates.title ? { title: updates.title } : {}),
+        ...(updates.priority ? { priority: updates.priority } : {})
+      })
     });
-    setEditValues(prev => ({ ...prev, [id]: "" }));
+
+    setEditValues(prev => ({ ...prev, [id]: { title: "", priority: "" } }));
     await loadTasks();
   }
 
@@ -189,12 +194,30 @@ export default function Home() {
               <div className="flex gap-2">
                 <input
                   placeholder="Edit title"
-                  value={editValues[t.id] ?? ""}
+                  value={editValues[t.id]?.title ?? ""}
                   onChange={e =>
-                    setEditValues(prev => ({ ...prev, [t.id]: e.target.value }))
+                    setEditValues(prev => ({
+                      ...prev,
+                      [t.id]: { ...prev[t.id], title: e.target.value }
+                    }))
                   }
                   className="border rounded p-1"
                 />
+                <select
+                  value={editValues[t.id]?.priority ?? ""}
+                  onChange={e =>
+                    setEditValues(prev => ({
+                      ...prev,
+                      [t.id]: { ...prev[t.id], priority: e.target.value }
+                    }))
+                  }
+                  className="border rounded p-1"
+                >
+                  <option value="">(no change)</option>
+                  <option value="low">Low</option>
+                  <option value="med">Medium</option>
+                  <option value="high">High</option>
+                </select>
                 <button
                   onClick={() => editTask(t.id)}
                   className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
