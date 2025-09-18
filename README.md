@@ -1,191 +1,155 @@
-# todo-cli-node
+# 📝 Full-Stack Task Manager
 
-A full-stack **Task Manager** project showing evolution from a simple CLI → REST API → Web frontend.
+A simple **Task Manager** built with:
 
-✨ Features:
-- **CLI Tool** (`todo`) built in **Node.js** with [yargs](https://github.com/yargs/yargs)  
-- **REST API** powered by **Express + CORS** with basic authentication  
-- **Frontend** built using **Next.js + TailwindCSS** (App Router, Turbopack)  
-- **Persistent Storage** via JSON file (pluggable for SQLite/Postgres later)  
-- **Unit tests** using Node’s built-in `node:test`
+- **Backend**: Node.js + Express + JWT Authentication + SQLite  
+- **Frontend**: Next.js (React) with TailwindCSS  
+- **Features**: Add, edit, mark done, delete tasks, authentication with JWT, token persistence (localStorage), logout.
 
 ---
 
-## ⚙️ Setup Guide
-
-### 🔹 Backend (CLI + API)
-1. Clone and install:
-   ```bash
-   git clone https://github.com/<your-username>/todo-cli-node.git
-   cd todo-cli-node
-   npm install
-   ```
-
-2. Run the **CLI**:
-   ```bash
-   npm start -- add "Buy groceries" -p high -d 2025-09-20
-   npm start -- list
-   ```
-
-3. Start the **API server**:
-   ```bash
-   npm run server
-   ```
-   - Runs at **http://localhost:4000**
-   - Login credentials:
-     - username: `admin`
-     - password: `password123`
-
----
-
-### 🔹 Frontend (Next.js UI)
-1. Go into the frontend app:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-2. Open **http://localhost:3000** in your browser.  
-3. Login with:
-   - username: `admin`
-   - password: `password123`
-
-**From the UI you can:**
-- ➕ **Add**: enter a title + choose priority (Low / Medium / High) and click **Add**
-- 📋 **View**: see all tasks with colored priority badges
-- ✅ **Mark Done**: click **Done** to mark a task as completed
-- ✏️ **Edit**: change the title and/or update priority using the input + dropdown, then click **Edit**
-- 🗑️ **Delete**: click **Delete** to remove a task
-
----
-
-## 🖥️ CLI Commands
-
-### ➕ Add a task
-```bash
-npm start -- add "Buy groceries" -p high -d 2025-09-20
+## 📂 Project Structure
 ```
-
-### 📋 List tasks
-```bash
-npm start -- list
-npm start -- list --all
-npm start -- list --done
-npm start -- list --search "groceries"
-```
-
-### ✅ Mark as done
-```bash
-npm start -- done <id>
-```
-
-### ✏️ Edit a task
-```bash
-npm start -- edit <id> "Updated title" -p low -d 2025-10-01
-```
-
-### 🗑️ Delete a task
-```bash
-npm start -- delete <id>
+todo-cli-node/
+├── server.js          # Express API with JWT + SQLite
+├── src/
+│   ├── db.js          # SQLite database setup
+│   ├── storage.js     # DB operations
+│   └── tasks.js       # Task CRUD logic
+├── frontend/          # Next.js frontend
+└── data/tasks.db      # SQLite database file
 ```
 
 ---
 
-## 🌐 REST API Endpoints
+## 🚀 Setup Instructions
 
-Start the API:
+### 1. Clone the repo
+```bash
+git clone https://github.com/<your-username>/todo-cli-node.git
+cd todo-cli-node
+```
+
+### 2. Install backend dependencies
+```bash
+npm install
+```
+
+### 3. Install frontend dependencies
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+---
+
+## ▶️ Running the Project
+
+### Start the backend
+From project root:
 ```bash
 npm run server
 ```
+API will run at **http://localhost:4000**
 
-Base URL: `http://localhost:4000`
-
-- `POST /login` → authenticate with `{ username, password }`
-- `GET /tasks` → list all tasks (requires `username` + `password` headers)
-- `POST /tasks` → add a task
-- `PUT /tasks/:id/done` → mark as done
-- `PUT /tasks/:id` → edit task (e.g., `{ "title": "New title" }`)
-- `DELETE /tasks/:id` → delete task
-
-**Examples:**
+### Start the frontend
+Open another terminal:
 ```bash
-# List
-curl -X GET http://localhost:4000/tasks \
-  -H "username: admin" -H "password: password123"
-
-# Add
-curl -X POST http://localhost:4000/tasks \
-  -H "Content-Type: application/json" \
-  -H "username: admin" -H "password: password123" \
-  -d '{"title":"Buy groceries","priority":"high"}'
-
-# Done
-curl -X PUT http://localhost:4000/tasks/<id>/done \
-  -H "username: admin" -H "password: password123"
-
-# Edit (title)
-curl -X PUT http://localhost:4000/tasks/<id> \
-  -H "Content-Type: application/json" \
-  -H "username: admin" -H "password: password123" \
-  -d '{"title":"Updated title"}'
-
-# Delete
-curl -X DELETE http://localhost:4000/tasks/<id> \
-  -H "username: admin" -H "password: password123"
+cd frontend
+npm run dev
 ```
+Frontend will run at **http://localhost:3000**
 
 ---
 
-## 📦 Scripts
-```bash
-npm start        # run CLI
-npm run server   # run Express API
-npm test         # run unit tests
-cd frontend && npm run dev   # run Next.js frontend
-```
+## 🔑 Authentication (JWT)
+
+1. **Login** with:
+   - Username: `admin`  
+   - Password: `password123`  
+
+2. Backend issues a **JWT token** which is stored in browser `localStorage`.  
+
+3. All subsequent requests attach the token:
+   ```
+   Authorization: Bearer <jwt_token>
+   ```
+
+4. Logout clears the token.  
 
 ---
 
-## 🔧 Tech Stack
-- **Node.js** (CLI + API)
-- **yargs** for CLI parsing
-- **express + cors + body-parser** for REST API
-- **Next.js (App Router, Turbopack) + TailwindCSS** for frontend
-- **node:test** for unit tests
-- JSON storage (extensible to SQLite/Postgres)
-
----
-
-## 🏗️ Architecture Overview
-
+## 🔄 JWT Flow Diagram
 ```text
-           ┌─────────────┐
-           │   Frontend  │  (Next.js + Tailwind)
-           │   http://localhost:3000
-           └───────┬─────┘
-                   │ REST API calls (fetch)
-                   ▼
-           ┌─────────────┐
-           │   Backend   │  (Express API)
-           │   http://localhost:4000
-           └───────┬─────┘
-                   │ uses
-                   ▼
-           ┌─────────────┐
-           │  Storage    │  (JSON file)
-           │  data/tasks.json
-           └─────────────┘
+User Login → /login → Server verifies → Issues JWT → 
+Frontend stores JWT → 
+Frontend requests /tasks with "Authorization: Bearer <token>" →
+Server verifies JWT → Grants access
 ```
-
-- **Authentication:** basic (username/password in headers)  
-- **Persistence:** JSON file (future: SQLite/Postgres)  
-- **Expansion Path:** JWT auth, multi-user, cloud deployment  
 
 ---
 
-## 🗺️ Roadmap
-- [ ] Upgrade persistence to SQLite/Postgres  
-- [ ] JWT-based auth  
-- [ ] Deploy frontend (Vercel) + backend (Railway/Render)  
-- [ ] Add charts & filters to tasks  
-- [ ] Multi-user support  
+## 📌 Features
+
+### ✅ Task Operations
+- **Add**: Enter task title + priority → click Add  
+- **Edit**: Click Edit → change title/priority → Save  
+- **Mark Done**: Click Done → status changes to `done`  
+- **Delete**: Click Delete → removes task  
+
+### ✅ Authentication
+- JWT issued on login  
+- Token persists in localStorage  
+- Logout button clears session  
+
+---
+
+## 🗄️ Database
+- Uses **SQLite** (`data/tasks.db`)  
+- Table schema:
+```sql
+CREATE TABLE tasks (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  priority TEXT DEFAULT 'med',
+  due TEXT,
+  createdAt TEXT,
+  updatedAt TEXT
+);
+```
+
+Check tasks directly in DB:
+```bash
+sqlite3 data/tasks.db
+SELECT * FROM tasks;
+.exit
+```
+
+---
+
+## 🌐 Deployment (optional)
+- **Backend** → [Render](https://render.com/) or [Railway](https://railway.app/)  
+- **Frontend** → [Vercel](https://vercel.com/)  
+
+---
+
+## 📖 Resume-Ready Highlights
+- 🔐 Implemented **JWT authentication** with persistent login + logout.  
+- 🗄️ Migrated from JSON storage → **SQLite database**.  
+- ⚡ Built full-stack app with **Express + Next.js**.  
+- 🎨 Responsive UI with **TailwindCSS**.  
+
+---
+
+## 📸 Screenshots (optional)
+- Login screen  
+- Task dashboard  
+- Database view (SQLite)  
+
+---
+
+## 👨‍💻 Author
+**Arun Munagala**  
+US Citizen 🇺🇸 | Master’s in Intelligent Systems @ Indiana University
