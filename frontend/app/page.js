@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [username, setUsername] = useState("admin");
@@ -7,9 +7,10 @@ export default function Home() {
   const [token, setToken] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState("med"); // for new task
-  const [editValues, setEditValues] = useState({}); // { id: { title, priority } }
+  const [priority, setPriority] = useState("med");
+  const [editValues, setEditValues] = useState({});
 
+  // 🔹 LOGIN → request token
   async function login() {
     const res = await fetch("http://localhost:4000/login", {
       method: "POST",
@@ -19,28 +20,30 @@ export default function Home() {
     if (res.ok) {
       const data = await res.json();
       setToken(data.token);
-      await loadTasks();
+      await loadTasks(data.token); // load tasks right after login
     } else {
       alert("Login failed");
     }
   }
 
-  async function loadTasks() {
+  // 🔹 LOAD TASKS
+  async function loadTasks(tok = token) {
+    if (!tok) return;
     const res = await fetch("http://localhost:4000/tasks", {
-      headers: { username, password }
+      headers: { Authorization: `Bearer ${tok}` }
     });
     const data = await res.json();
     setTasks(data);
   }
 
+  // 🔹 ADD TASK
   async function addTask() {
     if (!title.trim()) return;
     await fetch("http://localhost:4000/tasks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        username,
-        password
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({ title, priority })
     });
@@ -49,22 +52,25 @@ export default function Home() {
     await loadTasks();
   }
 
+  // 🔹 MARK DONE
   async function markDone(id) {
     await fetch(`http://localhost:4000/tasks/${id}/done`, {
       method: "PUT",
-      headers: { username, password }
+      headers: { Authorization: `Bearer ${token}` }
     });
     await loadTasks();
   }
 
+  // 🔹 DELETE
   async function deleteTask(id) {
     await fetch(`http://localhost:4000/tasks/${id}`, {
       method: "DELETE",
-      headers: { username, password }
+      headers: { Authorization: `Bearer ${token}` }
     });
     await loadTasks();
   }
 
+  // 🔹 EDIT
   async function editTask(id) {
     const updates = editValues[id] || {};
     if (!updates.title && !updates.priority) return;
@@ -73,8 +79,7 @@ export default function Home() {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        username,
-        password
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
         ...(updates.title ? { title: updates.title } : {}),
@@ -86,6 +91,7 @@ export default function Home() {
     await loadTasks();
   }
 
+  // helper for badge styling
   function priorityBadge(p) {
     const colors = {
       low: "bg-green-200 text-green-800",
@@ -99,6 +105,7 @@ export default function Home() {
     );
   }
 
+  // if not logged in → show login form
   if (!token) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4">
@@ -128,11 +135,12 @@ export default function Home() {
     );
   }
 
+  // if logged in → show tasks UI
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Tasks</h1>
 
-      {/* Task input form */}
+      {/* Add task form */}
       <div className="flex flex-col sm:flex-row gap-2 mb-6">
         <input
           value={title}
@@ -160,11 +168,9 @@ export default function Home() {
       {/* Task list */}
       <ul className="space-y-3">
         {tasks.map(t => (
-          <li
-            key={t.id}
-            className="border rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-          >
-            <div className="flex items-center gap-2">
+          <li key={t.id} className="border rounded-lg p-3 flex flex-col gap-3">
+            {/* Task info */}
+            <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">{t.title}</span>
               <span className="text-xs px-2 py-0.5 rounded bg-gray-100">{t.status}</span>
               {priorityBadge(t.priority)}
@@ -175,56 +181,52 @@ export default function Home() {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => markDone(t.id)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                >
-                  Done
-                </button>
-                <button
-                  onClick={() => deleteTask(t.id)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                >
-                  Delete
-                </button>
-              </div>
-
-              <div className="flex gap-2">
-                <input
-                  placeholder="Edit title"
-                  value={editValues[t.id]?.title ?? ""}
-                  onChange={e =>
-                    setEditValues(prev => ({
-                      ...prev,
-                      [t.id]: { ...prev[t.id], title: e.target.value }
-                    }))
-                  }
-                  className="border rounded p-1"
-                />
-                <select
-                  value={editValues[t.id]?.priority ?? ""}
-                  onChange={e =>
-                    setEditValues(prev => ({
-                      ...prev,
-                      [t.id]: { ...prev[t.id], priority: e.target.value }
-                    }))
-                  }
-                  className="border rounded p-1"
-                >
-                  <option value="">(no change)</option>
-                  <option value="low">Low</option>
-                  <option value="med">Medium</option>
-                  <option value="high">High</option>
-                </select>
-                <button
-                  onClick={() => editTask(t.id)}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                >
-                  Edit
-                </button>
-              </div>
+            {/* Task actions */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => markDone(t.id)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+              >
+                Done
+              </button>
+              <button
+                onClick={() => deleteTask(t.id)}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+              >
+                Delete
+              </button>
+              <input
+                placeholder="Edit title"
+                value={editValues[t.id]?.title ?? ""}
+                onChange={e =>
+                  setEditValues(prev => ({
+                    ...prev,
+                    [t.id]: { ...prev[t.id], title: e.target.value }
+                  }))
+                }
+                className="border rounded p-1 flex-1 min-w-[120px]"
+              />
+              <select
+                value={editValues[t.id]?.priority ?? ""}
+                onChange={e =>
+                  setEditValues(prev => ({
+                    ...prev,
+                    [t.id]: { ...prev[t.id], priority: e.target.value }
+                  }))
+                }
+                className="border rounded p-1"
+              >
+                <option value="">(no change)</option>
+                <option value="low">Low</option>
+                <option value="med">Medium</option>
+                <option value="high">High</option>
+              </select>
+              <button
+                onClick={() => editTask(t.id)}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+              >
+                Edit
+              </button>
             </div>
           </li>
         ))}
