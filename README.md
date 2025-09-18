@@ -1,155 +1,91 @@
 # 📝 Full-Stack Task Manager
 
-A simple **Task Manager** built with:
+A simple **Task Manager** project built to practice **full-stack development** concepts.
 
+---
+
+## 🔧 Tech Stack
 - **Backend**: Node.js + Express + JWT Authentication + SQLite  
-- **Frontend**: Next.js (React) with TailwindCSS  
-- **Features**: Add, edit, mark done, delete tasks, authentication with JWT, token persistence (localStorage), logout.
+- **Frontend**: Next.js (React) + TailwindCSS  
+- **Other Tools**: ngrok (temporary tunneling for backend), Vercel (frontend deployment), GitHub  
+
+---
+
+## 🚀 Features
+- User login with JWT authentication  
+- Add, edit, mark as done, delete tasks  
+- Priority levels (low / medium / high)  
+- Due date support  
+- Token persistence (saved in localStorage)  
+- Backend with SQLite database  
+- Deployed frontend on **Vercel**  
 
 ---
 
 ## 📂 Project Structure
-```
-todo-cli-node/
-├── server.js          # Express API with JWT + SQLite
-├── src/
-│   ├── db.js          # SQLite database setup
-│   ├── storage.js     # DB operations
-│   └── tasks.js       # Task CRUD logic
-├── frontend/          # Next.js frontend
-└── data/tasks.db      # SQLite database file
-```
+todo-cli-node/  
+├── server.js        # Express API with JWT + SQLite  
+├── src/  
+│   ├── db.js        # SQLite database setup  
+│   ├── storage.js   # DB operations  
+│   └── tasks.js     # Task CRUD logic  
+├── frontend/        # Next.js frontend  
+└── data/tasks.db    # SQLite database file  
 
 ---
 
-## 🚀 Setup Instructions
+## ⚡ Usage
 
-### 1. Clone the repo
-```bash
-git clone https://github.com/<your-username>/todo-cli-node.git
-cd todo-cli-node
-```
+### 1. Backend (Express + SQLite)
 
-### 2. Install backend dependencies
-```bash
-npm install
-```
+Start backend locally:
+    npm run server
 
-### 3. Install frontend dependencies
-```bash
-cd frontend
-npm install
-cd ..
-```
+Runs at http://localhost:4000  
 
----
+**Test with curl:**
 
-## ▶️ Running the Project
+Login:
+    curl -X POST http://localhost:4000/login \
+      -H "Content-Type: application/json" \
+      -d '{"username":"admin","password":"password123"}'
 
-### Start the backend
-From project root:
-```bash
-npm run server
-```
-API will run at **http://localhost:4000**
-
-### Start the frontend
-Open another terminal:
-```bash
-cd frontend
-npm run dev
-```
-Frontend will run at **http://localhost:3000**
+Add Task:
+    curl -X POST http://localhost:4000/tasks \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer <your_token>" \
+      -d '{"title":"Test Task","priority":"high"}'
 
 ---
 
-## 🔑 Authentication (JWT)
+### 2. Frontend (Next.js + TailwindCSS)
 
-1. **Login** with:
-   - Username: `admin`  
-   - Password: `password123`  
+Start frontend locally:
+    cd frontend
+    npm run dev
 
-2. Backend issues a **JWT token** which is stored in browser `localStorage`.  
+Runs at http://localhost:3000  
 
-3. All subsequent requests attach the token:
-   ```
-   Authorization: Bearer <jwt_token>
-   ```
+**Deployment**:  
+Frontend deployed on **Vercel**.  
+Backend exposed via **ngrok** and connected using an environment variable:
 
-4. Logout clears the token.  
-
----
-
-## 🔄 JWT Flow Diagram
-```text
-User Login → /login → Server verifies → Issues JWT → 
-Frontend stores JWT → 
-Frontend requests /tasks with "Authorization: Bearer <token>" →
-Server verifies JWT → Grants access
-```
+    NEXT_PUBLIC_API_URL=https://<your-ngrok-url>.ngrok-free.app
 
 ---
 
-## 📌 Features
-
-### ✅ Task Operations
-- **Add**: Enter task title + priority → click Add  
-- **Edit**: Click Edit → change title/priority → Save  
-- **Mark Done**: Click Done → status changes to `done`  
-- **Delete**: Click Delete → removes task  
-
-### ✅ Authentication
-- JWT issued on login  
-- Token persists in localStorage  
-- Logout button clears session  
+## 📋 Example Workflow
+1. Login with `admin / password123`  
+2. Add a task → select priority  
+3. Edit task title or priority  
+4. Mark task as done ✅  
+5. Delete task 🗑️  
 
 ---
 
-## 🗄️ Database
-- Uses **SQLite** (`data/tasks.db`)  
-- Table schema:
-```sql
-CREATE TABLE tasks (
-  id TEXT PRIMARY KEY,
-  title TEXT NOT NULL,
-  status TEXT DEFAULT 'pending',
-  priority TEXT DEFAULT 'med',
-  due TEXT,
-  createdAt TEXT,
-  updatedAt TEXT
-);
-```
-
-Check tasks directly in DB:
-```bash
-sqlite3 data/tasks.db
-SELECT * FROM tasks;
-.exit
-```
-
----
-
-## 🌐 Deployment (optional)
-- **Backend** → [Render](https://render.com/) or [Railway](https://railway.app/)  
-- **Frontend** → [Vercel](https://vercel.com/)  
-
----
-
-## 📖 Resume-Ready Highlights
-- 🔐 Implemented **JWT authentication** with persistent login + logout.  
-- 🗄️ Migrated from JSON storage → **SQLite database**.  
-- ⚡ Built full-stack app with **Express + Next.js**.  
-- 🎨 Responsive UI with **TailwindCSS**.  
-
----
-
-## 📸 Screenshots (optional)
-- Login screen  
-- Task dashboard  
-- Database view (SQLite)  
-
----
-
-## 👨‍💻 Author
-**Arun Munagala**  
-US Citizen 🇺🇸 | Master’s in Intelligent Systems @ Indiana University
+## 📌 Improvements (Future Work)
+- Replace ngrok with a permanent backend deployment (Railway/Render/Heroku)  
+- Add user registration + multiple users  
+- Add due date reminders  
+- Task filtering & sorting  
+- UI polish with Tailwind components  
