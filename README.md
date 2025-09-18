@@ -51,9 +51,10 @@ A full-stack **Task Manager** project showing evolution from a simple CLI → RE
    - password: `password123`
 
 **From the UI you can:**
-- ➕ **Add**: type a title and click **Add**
-- ✅ **Mark Done**: click **Done** next to a task
-- ✏️ **Edit Title**: type a new title in the input next to a task, then click **Edit**
+- ➕ **Add**: enter a title + choose priority (Low / Medium / High) and click **Add**
+- 📋 **View**: see all tasks with colored priority badges
+- ✅ **Mark Done**: click **Done** to mark a task as completed
+- ✏️ **Edit**: change the title and/or update priority using the input + dropdown, then click **Edit**
 - 🗑️ **Delete**: click **Delete** to remove a task
 
 ---

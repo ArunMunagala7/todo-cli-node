@@ -11,12 +11,20 @@
     "server": "node server.js",
     "test": "node --test"
   },
-  "keywords": ["cli", "todo", "node", "sde", "portfolio"],
+  "keywords": [
+    "cli",
+    "todo",
+    "node",
+    "sde",
+    "portfolio"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "better-sqlite3": "^12.2.0",
     "cors": "^2.8.5",
     "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
     "yargs": "^17.7.2"
   }
 }

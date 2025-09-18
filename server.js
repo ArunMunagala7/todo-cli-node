@@ -1,59 +1,71 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const { addTask, listTasks, markDone, removeTask, editTask } = require('./src/tasks');
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const jwt = require("jsonwebtoken");
+
+const { addTask, listTasks, markDone, removeTask, editTask } = require("./src/tasks");
+const { readAll } = require("./src/storage");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// fake auth middleware
+// 🔹 Hardcoded user (for demo)
 const USERS = { admin: "password123" };
-function auth(req, res, next) {
-  const { username, password } = req.headers;
-  if (!username || !password || USERS[username] !== password) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  next();
+const SECRET_KEY = "supersecretkey"; // in real apps use env var
+
+// Middleware: verify JWT
+function authenticateJWT(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) return res.status(401).json({ error: "No token provided" });
+
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) return res.status(403).json({ error: "Invalid or expired token" });
+    req.user = user;
+    next();
+  });
 }
 
-// routes
-app.post('/login', (req, res) => {
+// 🔹 Login → issue JWT
+app.post("/login", (req, res) => {
   const { username, password } = req.body;
-  if (USERS[username] === password) {
-    return res.json({ token: "fake-jwt-token", username });
+  if (USERS[username] && USERS[username] === password) {
+    const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
+    return res.json({ token, username });
   }
   res.status(401).json({ error: "Invalid credentials" });
 });
 
-app.get('/tasks', auth, async (req, res) => {
-  const tasks = [];
-  await listTasks({ all: true }).catch(console.error); // console prints too
-  res.json(await require('./src/storage').readAll());
+// 🔹 Routes (all protected)
+app.get("/tasks", authenticateJWT, async (req, res) => {
+  res.json(await readAll());
 });
 
-app.post('/tasks', auth, async (req, res) => {
+app.post("/tasks", authenticateJWT, async (req, res) => {
   const { title, priority, due } = req.body;
   await addTask(title, priority, due);
   res.json({ success: true });
 });
 
-app.put('/tasks/:id/done', auth, async (req, res) => {
+app.put("/tasks/:id/done", authenticateJWT, async (req, res) => {
   await markDone(req.params.id);
   res.json({ success: true });
 });
 
-app.put('/tasks/:id', auth, async (req, res) => {
+app.put("/tasks/:id", authenticateJWT, async (req, res) => {
   const { title, priority, due, undone } = req.body;
   await editTask({ id: req.params.id, title, priority, due, undone });
   res.json({ success: true });
 });
 
-app.delete('/tasks/:id', auth, async (req, res) => {
+app.delete("/tasks/:id", authenticateJWT, async (req, res) => {
   await removeTask(req.params.id);
   res.json({ success: true });
 });
 
 // start server
 const PORT = 4000;
-app.listen(PORT, () => console.log(`✅ API running at http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ API running with JWT at http://localhost:${PORT}`)
+);

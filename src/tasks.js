@@ -1,112 +1,145 @@
-const { readAll, writeAll } = require('./storage');
-const { randomUUID } = require('crypto');
+const { randomUUID } = require("crypto");
+const db = require("./db");
 
 // validate priority
 function validPriority(p) {
-  return ['low', 'med', 'high'].includes(p);
+  return ["low", "med", "high"].includes(p);
 }
 
 // validate date
 function parseDue(due) {
   if (!due) return null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) {
-    throw new Error('Invalid due date. Use YYYY-MM-DD');
+    throw new Error("Invalid due date. Use YYYY-MM-DD");
   }
   return due;
 }
 
 // add new task
-async function addTask(title, priority = 'med', due) {
-  if (!title || !title.trim()) throw new Error('Title is required');
-  if (!validPriority(priority)) throw new Error('Priority must be low|med|high');
+async function addTask(title, priority = "med", due) {
+  if (!title || !title.trim()) throw new Error("Title is required");
+  if (!validPriority(priority)) throw new Error("Priority must be low|med|high");
 
-  const tasks = await readAll();
   const now = new Date().toISOString();
-
   const task = {
     id: randomUUID().slice(0, 8),
     title: title.trim(),
     priority,
     due: parseDue(due),
-    status: 'pending',
+    status: "pending",
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   };
 
-  tasks.push(task);
-  await writeAll(tasks);
+  db.prepare(
+    "INSERT INTO tasks (id, title, priority, due, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(
+    task.id,
+    task.title,
+    task.priority,
+    task.due,
+    task.status,
+    task.createdAt,
+    task.updatedAt
+  );
+
   console.log(`✅ Added: ${task.id} "${task.title}"`);
 }
 
 // list tasks
 async function listTasks({ all, done, search }) {
-  const tasks = await readAll();
-  let filtered = tasks;
+  let query = "SELECT * FROM tasks";
+  const conditions = [];
+  const params = [];
 
-  if (!all && !done) filtered = filtered.filter(t => t.status !== 'done');
-  if (done) filtered = filtered.filter(t => t.status === 'done');
+  if (!all && !done) {
+    conditions.push("status != ?");
+    params.push("done");
+  }
+  if (done) {
+    conditions.push("status = ?");
+    params.push("done");
+  }
   if (search) {
-    const q = search.toLowerCase();
-    filtered = filtered.filter(t => t.title.toLowerCase().includes(q));
+    conditions.push("LOWER(title) LIKE ?");
+    params.push(`%${search.toLowerCase()}%`);
   }
 
-  if (!filtered.length) {
-    console.log('No tasks to show.');
+  if (conditions.length > 0) {
+    query += " WHERE " + conditions.join(" AND ");
+  }
+
+  const tasks = db.prepare(query).all(...params);
+
+  if (!tasks.length) {
+    console.log("No tasks to show.");
     return;
   }
 
   console.table(
-    filtered.map(t => ({
+    tasks.map((t) => ({
       id: t.id,
       title: t.title,
       status: t.status,
       priority: t.priority,
-      due: t.due || '',
+      due: t.due || "",
       created: t.createdAt.slice(0, 10),
-      updated: t.updatedAt.slice(0, 10)
+      updated: t.updatedAt.slice(0, 10),
     }))
   );
 }
 
 // mark a task as done
 async function markDone(id) {
-  const tasks = await readAll();
-  const idx = tasks.findIndex(t => t.id === id);
-  if (idx === -1) throw new Error('Task not found');
+  const now = new Date().toISOString();
+  const result = db
+    .prepare("UPDATE tasks SET status = ?, updatedAt = ? WHERE id = ?")
+    .run("done", now, id);
 
-  tasks[idx].status = 'done';
-  tasks[idx].updatedAt = new Date().toISOString();
-  await writeAll(tasks);
+  if (result.changes === 0) throw new Error("Task not found");
   console.log(`🟩 Done: ${id}`);
 }
 
 // delete a task
 async function removeTask(id) {
-  const tasks = await readAll();
-  const idx = tasks.findIndex(t => t.id === id);
-  if (idx === -1) throw new Error('Task not found');
-
-  const [removed] = tasks.splice(idx, 1);
-  await writeAll(tasks);
-  console.log(`🗑️ Deleted: ${removed.id} "${removed.title}"`);
+  const result = db.prepare("DELETE FROM tasks WHERE id = ?").run(id);
+  if (result.changes === 0) throw new Error("Task not found");
+  console.log(`🗑️ Deleted: ${id}`);
 }
 
 // edit a task
 async function editTask({ id, title, priority, due, undone }) {
-  const tasks = await readAll();
-  const t = tasks.find(x => x.id === id);
-  if (!t) throw new Error('Task not found');
+  const now = new Date().toISOString();
+  const updates = [];
+  const params = [];
 
-  if (title !== undefined) t.title = title.trim();
-  if (priority !== undefined) {
-    if (!validPriority(priority)) throw new Error('Priority must be low|med|high');
-    t.priority = priority;
+  if (title !== undefined) {
+    updates.push("title = ?");
+    params.push(title.trim());
   }
-  if (due !== undefined) t.due = parseDue(due);
-  if (undone) t.status = 'pending';
+  if (priority !== undefined) {
+    if (!validPriority(priority))
+      throw new Error("Priority must be low|med|high");
+    updates.push("priority = ?");
+    params.push(priority);
+  }
+  if (due !== undefined) {
+    updates.push("due = ?");
+    params.push(parseDue(due));
+  }
+  if (undone) {
+    updates.push("status = ?");
+    params.push("pending");
+  }
 
-  t.updatedAt = new Date().toISOString();
-  await writeAll(tasks);
+  updates.push("updatedAt = ?");
+  params.push(now);
+  params.push(id);
+
+  const sql = `UPDATE tasks SET ${updates.join(", ")} WHERE id = ?`;
+  const result = db.prepare(sql).run(...params);
+
+  if (result.changes === 0) throw new Error("Task not found");
   console.log(`✏️  Edited: ${id}`);
 }
 
