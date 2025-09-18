@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL; // ✅ dynamic API base URL
+
 export default function Home() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +24,7 @@ export default function Home() {
   }, []);
 
   async function login() {
-    const res = await fetch("http://localhost:4000/login", {
+    const res = await fetch(`${API_BASE}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
@@ -38,15 +40,18 @@ export default function Home() {
   }
 
   async function fetchTasks(tok = token) {
-    const res = await fetch("http://localhost:4000/tasks", {
+    if (!tok) return;
+    const res = await fetch(`${API_BASE}/tasks`, {
       headers: { Authorization: `Bearer ${tok}` },
     });
-    const data = await res.json();
-    setTasks(data);
+    if (res.ok) {
+      const data = await res.json();
+      setTasks(data);
+    }
   }
 
   async function addTask() {
-    await fetch("http://localhost:4000/tasks", {
+    await fetch(`${API_BASE}/tasks`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -60,7 +65,7 @@ export default function Home() {
   }
 
   async function markDone(id) {
-    await fetch(`http://localhost:4000/tasks/${id}/done`, {
+    await fetch(`${API_BASE}/tasks/${id}/done`, {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -68,7 +73,7 @@ export default function Home() {
   }
 
   async function removeTask(id) {
-    await fetch(`http://localhost:4000/tasks/${id}`, {
+    await fetch(`${API_BASE}/tasks/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -76,7 +81,7 @@ export default function Home() {
   }
 
   async function editTask(id) {
-    await fetch(`http://localhost:4000/tasks/${id}`, {
+    await fetch(`${API_BASE}/tasks/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -201,7 +206,11 @@ export default function Home() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setEditTaskId(t.id) || setEditTitle(t.title) || setEditPriority(t.priority)}
+                    onClick={() => {
+                      setEditTaskId(t.id);
+                      setEditTitle(t.title);
+                      setEditPriority(t.priority);
+                    }}
                     className="bg-yellow-500 text-white px-3 py-1 rounded"
                   >
                     Edit
